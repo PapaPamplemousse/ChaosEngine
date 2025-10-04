@@ -1,100 +1,141 @@
 #!/bin/bash
 # ------------------------------------------------------------------------------
 # @file chaosbuild.sh
-# @brief Script to build the Docker image, compile the project, and run the demo.
+# @brief ChaosEngine Interactive Builder & Demo Runner
 # 
-# This script automates the compilation of the ChaosEngine project inside a Docker 
-# container to ensure a consistent build environment. It then attempts to run 
-# the compiled GUI executable, forwarding the display using X11/Wayland 
-# capabilities (commonly used in WSL/Linux environments).
+# Features:
+# - Build/Rebuild Docker image
+# - Build ChaosEngine library
+# - Automatically list, compile, and run demos
+# - Colorful interactive terminal menu
 # 
 # @author PapaPamplemousse
 # @date October 2025
 # @version 1.0
 # ------------------------------------------------------------------------------
 
-# --- Configuration Variables ---
 
-# @var IMAGE_NAME
-# @brief The name and tag for the Docker image.
+#!/bin/bash
+# ------------------------------------------------------------------------------
+# ChaosEngine Interactive Builder & Demo Runner
+# ------------------------------------------------------------------------------
+
 IMAGE_NAME="chaos-engine:latest"
-
-# @var DOCKERFILE_PATH
-# @brief The path to the Dockerfile to use for the build.
-# We default to the standard name 'Dockerfile' in the current directory.
 DOCKERFILE_PATH="Dockerfile"
-
-# @var HOST_DIR
-# @brief The absolute path to the project directory on the host (WSL/Linux).
 HOST_DIR=$(pwd)
-
-# @var CONTAINER_DIR
-# @brief The path where host files will be mounted inside the container.
 CONTAINER_DIR="/workspace"
+DEMO_ROOT="examples"
 
-# @var TARGET_EXECUTABLE
-# @brief Path to the compiled binary relative to HOST_DIR and CONTAINER_DIR.
-TARGET_EXECUTABLE="examples/demo"
+# === Colors ===
+RED="\033[1;31m"; GREEN="\033[1;32m"; YELLOW="\033[1;33m"
+BLUE="\033[1;34m"; CYAN="\033[1;36m"; RESET="\033[0m"
 
-# --- Step 1: Build Docker Image ---
-echo "--- 🔨 Checking and Rebuilding Docker Image ($IMAGE_NAME) ---"
+section() { echo -e "\n${BLUE}=== $1 ===${RESET}\n"; }
 
-# Build the Docker image.
-# The build context is set to the current directory ($HOST_DIR).
-docker build -t "$IMAGE_NAME" -f "$DOCKERFILE_PATH" "$HOST_DIR"
-BUILD_STATUS=$?
+# --- Docker build ---
+build_docker() {
+  section "🐳 Rebuilding Docker image: ${IMAGE_NAME}"
+  docker build -t "$IMAGE_NAME" -f "$DOCKERFILE_PATH" "$HOST_DIR" || {
+    echo -e "${RED}❌ Docker build failed.${RESET}"; exit 1; }
+  echo -e "${GREEN}✅ Docker image built successfully.${RESET}"
+}
 
-if [ $BUILD_STATUS -ne 0 ]; then
-    echo "--- ❌ Docker image build failed (code $BUILD_STATUS) ---"
+# --- Build ChaosEngine lib ---
+build_library() {
+  section "⚙️ Building ChaosEngine library"
+  docker run --rm -v "$HOST_DIR:$CONTAINER_DIR" -w "$CONTAINER_DIR" "$IMAGE_NAME" make clean all
+  if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ ChaosEngine library built successfully.${RESET}"
+  else
+    echo -e "${RED}❌ Library build failed.${RESET}"
+  fi
+}
+
+# --- Gather demos ---
+DEMO_LIST=()
+list_demos() {
+  DEMO_LIST=()
+  for d in "$DEMO_ROOT"/*/; do
+    [ -d "$d" ] || continue
+    DEMO_LIST+=("$(basename "$d")")
+  done
+}
+
+# --- Print demos (to screen only) ---
+print_demos() {
+  list_demos
+  if [ ${#DEMO_LIST[@]} -eq 0 ]; then
+    echo -e "${RED}❌ No demos found in ${DEMO_ROOT}.${RESET}"
+    return 1
+  fi
+  echo -e "${YELLOW}📂 Available demos:${RESET}"
+  for i in "${!DEMO_LIST[@]}"; do
+    printf "   ${CYAN}[%d]${RESET} %s\n" $((i+1)) "${DEMO_LIST[$i]}"
+  done
+  echo
+}
+
+# --- Select demo ---
+select_demo() {
+  print_demos || return 1
+  echo -ne "${YELLOW}Select a demo number: ${RESET}" >&2
+  read -r choice < /dev/tty
+  [[ "$choice" =~ ^[0-9]+$ ]] || { echo -e "${RED}Invalid input.${RESET}" >&2; return 1; }
+  local idx=$((choice-1))
+  if [ "$idx" -lt 0 ] || [ "$idx" -ge "${#DEMO_LIST[@]}" ]; then
+    echo -e "${RED}Invalid selection.${RESET}" >&2; return 1
+  fi
+  SELECTED_DEMO="${DEMO_LIST[$idx]}"
+}
+
+# --- Build & run demo ---
+run_demo() {
+  local demo_name="$1"
+  local demo_dir="$DEMO_ROOT/$demo_name"
+  local src_file="$demo_dir/src/demo.c"
+
+  if [ ! -f "$src_file" ]; then
+    echo -e "${RED}❌ Source file not found: $src_file${RESET}"
     exit 1
-fi
-echo "--- ✅ Docker image built successfully ---"
+  fi
 
-# --- Step 2: Compile Project using 'make' ---
-echo "--- 🚀 Compiling project inside Docker ---"
+  section "🚀 Building & running demo: ${demo_name}"
 
-# Run the container to execute 'make'.
-# --rm: Automatically remove the container when it exits.
-# -v: Mount the current host directory into the container.
-# -w: Set the working directory inside the container.
-# "$@": Pass all command-line arguments (e.g., 'make clean', 'make install') to 'make'.
-docker run \
-    --rm \
+  docker run --rm -it \
+    -e DISPLAY=$DISPLAY \
     -v "$HOST_DIR:$CONTAINER_DIR" \
     -w "$CONTAINER_DIR" \
     "$IMAGE_NAME" \
-    make "$@"
+    bash -c "make clean && make example EXAMPLES_SRC=$demo_dir/src EXAMPLE_DIR=$demo_dir && $demo_dir/demo"
+}
 
-EXIT_CODE=$?
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "--- ❌ Compilation failed (exit code $EXIT_CODE) ---"
-    exit $EXIT_CODE
-fi
-echo "--- ✅ Compilation succeeded ---"
+main_menu() {
+  clear
+  echo -e "${CYAN}"
+  echo "======================================="
+  echo "      CHAOS ENGINE BUILD SYSTEM"
+  echo "======================================="
+  echo -e "${RESET}"
+  echo "1) 🐳 Rebuild Docker image"
+  echo "2) ⚙️  Build/Rebuild ChaosEngine library"
+  echo "3) 🎮 Compile and run a demo"
+  echo "4) ❌ Exit"
+  echo
+  print_demos
+  echo -ne "${YELLOW}Choose an option: ${RESET}"
+  read -r opt < /dev/tty
 
-# --- Step 3: Run Executable (if compiled) ---
+  case "$opt" in
+    1) build_docker ;;
+    2) build_library ;;
+    3) select_demo && run_demo "$SELECTED_DEMO" ;;
+    4) echo -e "${CYAN}Bye 👋${RESET}"; exit 0 ;;
+    *) echo -e "${RED}Invalid choice.${RESET}" ;;
+  esac
+}
 
-HOST_EXE="$HOST_DIR/$TARGET_EXECUTABLE"
-CONTAINER_EXE="$CONTAINER_DIR/$TARGET_EXECUTABLE"
-
-if [ -f "$HOST_EXE" ]; then
-    echo "--- 🎮 Launching binary in Docker with X display forwarding ---"
-
-    # Check if DISPLAY environment variable is set (critical for GUI forwarding)
-    if [ -z "$DISPLAY" ]; then
-        echo "⚠️ DISPLAY variable is not set. Defaulting to :0"
-        export DISPLAY=:0
-    fi
-
-    # Run the GUI executable.
-    # -it: Interactive (to handle input/output)
-    # -e DISPLAY: Passes the host's DISPLAY environment variable to the container
-    docker run --rm -it \
-        -e DISPLAY=$DISPLAY \
-        -v "$HOST_DIR:$CONTAINER_DIR" \
-        -w "$CONTAINER_DIR" \
-        "$IMAGE_NAME" \
-        "$CONTAINER_EXE"
-else
-    echo "--- ⚠️ Executable $TARGET_EXECUTABLE not found at $HOST_EXE ---"
-fi
+while true; do
+  main_menu
+  echo
+  read -p "Press ENTER to return to menu..." < /dev/tty
+done
