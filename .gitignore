@@ -1,0 +1,38 @@
+# === Build artifacts ===
+build/
+lib/
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+*.out
+*.exe
+
+# === Example binaries and generated images ===
+examples/demo
+examples/*.ppm
+
+# === Cache and logs ===
+.cache/
+*.log
+
+# === IDE / Editor files ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*.user
+*~
+*.bak
+
+# === OS-specific files ===
+.DS_Store
+Thumbs.db
+
+# === Docker ===
+*.tar
+*.img
+
+# === Makefile intermediate files ===
+*.d

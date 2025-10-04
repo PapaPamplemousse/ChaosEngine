@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+builder:
+build: .
+image: physics-engine-dev:latest
+volumes:
+- ./:/workspace:rw
+working_dir: /workspace
+tty: true
+stdin_open: true
