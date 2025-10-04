@@ -147,6 +147,6 @@ MIT License © 2025 — Developed by **PapaPamplemousse**
 ## 💬 Contributing
 
 Contributions, bug reports, and ideas are welcome!
-Open an issue or pull request on [GitHub](https://github.com/yourusername/ChaosEngine).
+Open an issue or pull request on [GitHub](https://github.com/PapaPamplemousse/ChaosEngine).
 
 Let’s build Chaos together 🌀
