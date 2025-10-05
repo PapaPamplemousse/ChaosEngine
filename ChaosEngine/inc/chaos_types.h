@@ -150,4 +150,30 @@ typedef uintptr_t   t_uintptr;
 /** @} */ /* End of Other Standard Types */
 
 
+
+/* ************* MATH TYPES ************* */
+/**
+ * @union vec_t
+ * @brief Represents a vector in 2D or 3D space.
+ * 
+ * A union that allows accessing vector components either as named fields x, y, z
+ * or as an array data[3]. The dimension in use is determined by the 'dim' field
+ * in the body_t structure.
+ */
+typedef union {
+    struct { t_float64 x, y, z; }; /**< @brief Access components by name (x, y, z). */
+    t_float64 data[3];             /**< @brief Access components as an array. */
+} vec_t;
+
+
+/** 
+ * @struct mat4
+ * @brief Represents a 4x4 matrix, typically used for transformations (row-major). 
+ * * The matrix is stored as a flat array of 16 double-precision floats.
+ */
+typedef struct 
+{ 
+    t_float64 m[16]; /**< @brief Matrix components (m[row*4 + col]). */
+} mat4; /* row-major: m[row*4 + col] */
+
 #endif /* TYPES_H */

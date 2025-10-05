@@ -1,5 +1,4 @@
-
- /**
+/**
  * 
  * ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒  ▒▓████████▓▒░▒▓███████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓████████▓▒░ 
  * ▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        ▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        
@@ -9,57 +8,56 @@
  * ▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒  ▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        
  * ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░░▒▓███████▓▒░  ▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░ 
  * 
- * @file chaosengine.h
- * @brief Main header file and single entry point for the Chaos Engine.
+ * @file chaos_time.h
+ * @brief ChaosEngine timing subsystem using SDL2 high-precision timer.
  *
- * This file serves as the unified interface to include all core functionalities
- * of the game engine. It aggregates the modules for mathematics (@ref chaos_linalg.h),
- * physics (@ref chaos_physics.h), base data types (@ref chaos_types.h), and the
- * graphics rendering system (@ref chaosrenderer.h). By including this file, user
- * projects gain full access to the complete Chaos Engine API.
- * @author PapaPamplemousse
+ * Provides consistent frame delta time and total elapsed time
+ * across all ChaosEngine modules (physics, animation, etc.).
+ *
  * @date October 2025
- * @version 1.0
- * */
+ * @author PapaPamplemousse
+ */
 
-#ifndef CHAOS_ENGINE_H
-#define CHAOS_ENGINE_H
+#ifndef CHAOS_TIME_H
+#define CHAOS_TIME_H
 
-/* ──────────────────────────────── */
-/* 🔹 1. Core definitions & types  */
-/* ──────────────────────────────── */
 #include "chaos_types.h"
 
-/* ──────────────────────────────── */
-/* 🔹 2. Math & linear algebra     */
-/* ──────────────────────────────── */
-#include "chaos_math.h"
-#include "chaos_linalg.h"
+/* ************************************************************************** */
+/* PUBLIC API                                                                 */
+/* ************************************************************************** */
 
-/* ──────────────────────────────── */
-/* 🔹 3. Physics & simulation base */
-/* ──────────────────────────────── */
-#include "chaos_physics.h"
+/**
+ * @brief Initializes the ChaosEngine timing subsystem.
+ *
+ * Must be called once before any timing function is used.
+ */
+void chaos_time_init(void);
 
-/* ──────────────────────────────── */
-/* 🔹 4. Rendering subsystem       */
-/* ──────────────────────────────── */
-#include "chaos_renderer_core.h"
-#include "chaos_camera.h"
-#include "chaos_mesh.h"
-#include "chaos_texture.h"
-#include "chaos_shader.h"
-#include "chaos_draw.h"
-#include "chaos_points.h"
+/**
+ * @brief Updates the internal frame delta time.
+ *
+ * Should be called exactly once per frame, typically at frame start.
+ */
+void chaos_time_update(void);
 
-/* ──────────────────────────────── */
-/* 🔹 5. Particles system          */
-/* ──────────────────────────────── */
-#include "chaos_particles.h"
+/**
+ * @brief Returns the elapsed time between frames, in seconds.
+ *
+ * @return Delta time as a 32-bit float (t_float32).
+ */
+t_float32 chaos_time_get_delta(void);
 
-/* ──────────────────────────────── */
-/* 🔹 6. Time management           */
-/* ──────────────────────────────── */
-#include "chaos_time.h"
+/**
+ * @brief Returns the total elapsed time since initialization.
+ *
+ * @return Elapsed time in seconds since @ref chaos_time_init().
+ */
+t_float32 chaos_time_get_since_start(void);
 
-#endif
+/**
+ * @brief Shuts down the timing subsystem.
+ */
+void chaos_time_shutdown(void);
+
+#endif /* CHAOS_TIME_H */

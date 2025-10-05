@@ -1,5 +1,4 @@
-
- /**
+/**
  * 
  * ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒  ▒▓████████▓▒░▒▓███████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓████████▓▒░ 
  * ▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        ▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        
@@ -9,57 +8,51 @@
  * ▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒  ▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        
  * ░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░░▒▓███████▓▒░  ▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░ 
  * 
- * @file chaosengine.h
- * @brief Main header file and single entry point for the Chaos Engine.
+ * @file chaos_texture.h
+ * @brief GPU texture management and creation from raw pixel data.
  *
- * This file serves as the unified interface to include all core functionalities
- * of the game engine. It aggregates the modules for mathematics (@ref chaos_linalg.h),
- * physics (@ref chaos_physics.h), base data types (@ref chaos_types.h), and the
- * graphics rendering system (@ref chaosrenderer.h). By including this file, user
- * projects gain full access to the complete Chaos Engine API.
+ * Encapsulates OpenGL 2D textures and provides helper functions to create
+ * or destroy them from raw 8-bit RGB/RGBA buffers. Also defines the
+ * `chaos_texture_t` structure used across materials and draw calls.
  * @author PapaPamplemousse
  * @date October 2025
  * @version 1.0
- * */
+ */
 
-#ifndef CHAOS_ENGINE_H
-#define CHAOS_ENGINE_H
+#ifndef CHAOS_TEXTURE_H
+#define CHAOS_TEXTURE_H
 
-/* ──────────────────────────────── */
-/* 🔹 1. Core definitions & types  */
-/* ──────────────────────────────── */
+ /* ************* INCLUDE ************* */
 #include "chaos_types.h"
 
-/* ──────────────────────────────── */
-/* 🔹 2. Math & linear algebra     */
-/* ──────────────────────────────── */
-#include "chaos_math.h"
-#include "chaos_linalg.h"
+/* ************* CONSTANTS ************* */
 
-/* ──────────────────────────────── */
-/* 🔹 3. Physics & simulation base */
-/* ──────────────────────────────── */
-#include "chaos_physics.h"
+/* ************* ENUMERATIONS ************* */
 
-/* ──────────────────────────────── */
-/* 🔹 4. Rendering subsystem       */
-/* ──────────────────────────────── */
-#include "chaos_renderer_core.h"
-#include "chaos_camera.h"
-#include "chaos_mesh.h"
-#include "chaos_texture.h"
-#include "chaos_shader.h"
-#include "chaos_draw.h"
-#include "chaos_points.h"
 
-/* ──────────────────────────────── */
-/* 🔹 5. Particles system          */
-/* ──────────────────────────────── */
-#include "chaos_particles.h"
+/* ************* STRUCTURES ************* */
 
-/* ──────────────────────────────── */
-/* 🔹 6. Time management           */
-/* ──────────────────────────────── */
-#include "chaos_time.h"
+/**
+ * @brief GPU texture handle (opaque OpenGL id stored internally).
+ */
+typedef struct chaos_texture_t {
+    t_uint32 width, height, channels;
+    t_uint32 _priv_gl_tex;
+} chaos_texture_t;
 
-#endif
+/* ************* UNIONS ************* */
+
+
+/* ************* FUNCTIONS ************* */
+/**
+ * @brief Create a 2D texture from 8-bit RGB/RGBA data.
+ */
+extern chaos_texture_t chaos_texture_create(const t_uint8* pixels, t_uint32 w, t_uint32 h, t_uint32 channels);
+
+/**
+ * @brief Destroy a 2D texture from 8-bit RGB/RGBA data.
+ */
+extern void chaos_texture_destroy(chaos_texture_t* t);
+
+
+#endif /* CHAOS_TEXTURE_H */

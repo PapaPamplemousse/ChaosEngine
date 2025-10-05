@@ -26,35 +26,33 @@
 #ifndef CHAOS_PHYSICS_H
 #define CHAOS_PHYSICS_H
 
-#include "chaostypes.h"
-#include "chaosmath.h"
+#include "chaos_types.h"
+#include "chaos_linalg.h"
 
 /* ************* STRUCTURES ************* */
 
 /**
  * @struct body_t
  * @brief Represents a physical body in 2D or 3D space.
- * 
- * A body has a position, velocity, accumulated force, mass, and a dimension flag.
+ * * A body has a position, velocity, accumulated force, mass, and a dimension flag.
  * The dimension flag 'dim' determines whether the body is treated as 2D or 3D.
  */
 typedef struct {
-    t_uint8 dim;      
-    vec_t pos;
-    vec_t vel;
-    vec_t force;
-    t_float64 mass;
+    t_uint8 dim;      /**< @brief The active dimension (2 for 2D, 3 for 3D). */
+    vec_t pos;       /**< @brief Position vector (world coordinates). */
+    vec_t vel;       /**< @brief Velocity vector. */
+    vec_t force;     /**< @brief Accumulated force vector applied during the current step. */
+    t_float64 mass;  /**< @brief Mass of the body (affects acceleration). */
 } body_t;
 
 
 /**
  * @struct world_t
  * @brief Represents the simulation world containing environmental parameters.
- * 
- * Currently only supports gravity, which is applied to bodies each simulation step.
+ * * Currently only supports gravity, which is applied to bodies each simulation step.
  */
 typedef struct {
-    vec_t gravity;
+    vec_t gravity; /**< @brief Gravity vector (e.g., (0, -9.81, 0) for Earth-like gravity). */
 } world_t;
 
 
