@@ -1,16 +1,19 @@
 # ChaosEngine ⚙️
 
-An experimental **C game engine** built from scratch — no Unity, no Unreal, just **SDL2 + OpenGL 4.5** and pure chaos.
-Designed for **learning**, **experimentation**, and eventually… **making real games**.
+![Made with C](https://img.shields.io/badge/Made%20with-C-blue.svg?style=for-the-badge\&logo=c)
+![Docker Ready](https://img.shields.io/badge/Docker-ready-2496ED.svg?style=for-the-badge\&logo=docker)
+
+An experimental **C game engine** built from scratch — no Unity, no Unreal, no C++… just **pure C**, **SDL2**, and **chaotic determination**.
+Designed for **learning**, **experimentation**, and ultimately… **creating full games**.
 
 ---
 
 ## 🎮 What is ChaosEngine?
 
-ChaosEngine is a **minimalist game engine** written in **C99**,
-built around the idea that you can create a complete 2D/3D rendering and physics stack from the ground up.
+ChaosEngine is a **modular and minimalist game engine** written in **C11**,
+focused on full control over **rendering**, **physics**, **audio**, and **systems** — without relying on the standard library more than necessary.
 
-It’s lightweight, modular, and designed for **game development experiments** — from particle systems to physics-driven worlds, with full control over the math, rendering, and memory layout.
+It’s a learning sandbox for anyone who wants to understand how a real engine is built from the ground up.
 
 ---
 
@@ -18,215 +21,235 @@ It’s lightweight, modular, and designed for **game development experiments** �
 
 ### 🪐 Physics Engine
 
-* Unified 2D/3D vector math (`vec_t`)
+* Unified 2D/3D math with `vec_t`
 * Gravity, motion, and velocity integration
-* Simple **Euler integration**
-* Lightweight entities (`body_t`, `world_t`)
-* Deterministic stepping for fixed-timestep simulation
+* Simple **Euler integrator**
+* Lightweight physical bodies (`body_t`, `world_t`)
+* Deterministic, fixed timestep updates
 
 ### 🎨 Rendering Engine
 
-* Modern **OpenGL 4.5 Core Profile**
-* Auto-generated **GLAD 2** OpenGL loader
-* **SDL2** for context, windowing, and input
-* Uniform Buffer Objects for camera management
-* Real-time unlit & textured shader pipelines
-* Debug helpers: lines, grids, wireframes
+* **SDL2-based renderer** (software or OpenGL-ready backend)
+* Window creation, input, and timing
+* Color fill, sprite drawing, and debug primitives
+* Designed for **pluggable rendering backends** (GL3.3+ later)
 
-### 🧠 Architecture
+### 🔊 Audio Engine
 
-* Fully modular C codebase
-* Independent modules: `ChaosMath`, `ChaosRenderer`, `ChaosPhysics`
-* Built to evolve toward an **ECS** + **scene graph** system
+* **miniaudio** (single-header) for mixing and playback
+* WAV/OGG loading, volume, and panning
+* Modular sound channels
 
----
+### ⚙️ Engine Core
 
-## 🕹️ Available Demos
-
-ChaosEngine comes with small, playable demos for testing core systems:
-
-| Demo                           | Description                          |
-| ------------------------------ | ------------------------------------ |
-| 🟢 **Bouncing Ball**           | Basic physics, gravity & restitution |
-| 🌧️ **Rain Particles**         | GPU particle system demo             |
+* Custom allocators (arena/pool)
+* Minimal libc replacement (`memcpy`, `strlen`, `itoa`, …)
+* Logging, error handling, and profiling utilities
+* Portable platform layer (SDL2 + optional native Linux/Win32)
+* Clear separation of runtime, physics, audio, resources, and graphics
 
 ---
 
-## 🧱 Project Structure
+## 🧱 Project Architecture
 
 ```
 ChaosEngine/
-├── inc/                  # Engine headers
-│   ├── chaos_math.h
-│   ├── chaosrenderer.h
-│   ├── chaos_physics.h
-│   └── chaosengine.h
-├── src/                  # Engine sources
-│   ├── chaosmath.c
-│   ├── chaosrenderer.c
-│   └── chaosphysics.c
-├── glad/                 # Auto-generated OpenGL loader (GLAD 2)
-│   ├── include/glad/gl.h
-│   └── src/gl.c
+├── cmake/                # Build system (Makefile)
+│   └── Makefile
+├── docker/               # Docker environment
+│   └── Dockerfile
+├── scripts/              # Utility scripts
+│   └── chaosbuild.sh
+├── inc/                  # Public headers (API)
+│   ├── core/
+│   ├── platform/
+│   ├── gfx/
+│   ├── audio/
+│   ├── physics/
+│   ├── resources/
+│   └── runtime/
+│   └── utility/
+├── src/                  # Engine implementations
+│   ├── core/
+│   ├── platform/
+│   ├── gfx/
+│   ├── audio/
+│   ├── physics/
+│   ├── resources/
+│   └── runtime/
+│   └── utility/
 ├── examples/             # Playable demos
-│   ├── bouncing_ball/
-│   └── rain_particles/
-├── Dockerfile
-├── chaosbuild.sh         # Interactive Docker build & run tool 🐳
-└── Makefile
+│   ├── 00_boot/
+│   ├── 01_sprites/
+│   ├── 02_audio/
+│   ├── 03_physics2d/
+│   └── 04_scene3d/
+├── tests/                # Unit and performance tests
+│   ├── unit/
+│   └── perf/
+└── docs/                 # Documentation & roadmap
+    └── ROADMAP.md
+```
+
+---
+
+## 🧰 Requirements
+
+ChaosEngine is **written in pure C**, with **minimal dependencies**.
+
+| Component      | Purpose                     | Status     |
+| -------------- | --------------------------- | ---------- |
+| GCC / Clang    | Compilation                 | ✅ Required |
+| SDL2           | Window, input, timer, audio | ✅ Required |
+| make / cmake   | Build system                | ✅ Required |
+| Python 3       | For tools/scripts           | ✅ Optional |
+| miniaudio, stb | Bundled single-header libs  | ✅ Included |
+
+Install essentials on Debian/Ubuntu :
+
+```bash
+sudo apt update
+sudo apt install build-essential libsdl2-dev make git python3
 ```
 
 ---
 
 ## ⚙️ Build Instructions
 
-### 🧰 Requirements
-
-* GCC or Clang (C99)
-* Make
-* SDL2 development libraries
-* Python ≥ 3.10 (for GLAD 2 generation)
-
-On Debian/Ubuntu:
+### 🧱 Build the Library
 
 ```bash
-sudo apt update
-sudo apt install build-essential libsdl2-dev python3-pip
-pip install glad2
+make -f cmake/Makefile
+```
+
+Builds every `.c` in `ChaosEngine/src` into `lib/libChaosEngine.a`.
+
+### 🧪 Build & Run a Demo
+
+```bash
+make -f cmake/Makefile run EXAMPLE=00_boot
+```
+
+| Example         | Description           |
+| --------------- | --------------------- |
+| `00_boot/`      | Engine boot test      |
+| `01_sprites/`   | Sprite rendering      |
+| `02_audio/`     | Simple audio playback |
+| `03_physics2d/` | Physics world         |
+| `04_scene3d/`   | Early 3D prototype    |
+
+### 🧹 Clean
+
+```bash
+make -f cmake/Makefile clean
+make -f cmake/Makefile clean-examples
 ```
 
 ---
 
-### 🔧 Local Build
+## 🐳 Docker Development Environment
+
+A ready-to-use **Docker setup** lives in `docker/Dockerfile`.
+
+### 🧱 Build the Image
 
 ```bash
-make         # Build the ChaosEngine library and demos
-make run     # Run the default demo
-make clean   # Clean build artifacts
+docker build -t chaosengine:latest -f docker/Dockerfile .
 ```
+
+### 🧑‍💻 Launch a Shell
+
+```bash
+docker run --rm -it -v "$(pwd)":/workspace -w /workspace chaosengine:latest /bin/bash
+```
+
+Includes :
+
+* GCC, GDB, Valgrind
+* SDL2 dev headers
+* Python (`rich`, `colorama`)
+
+Perfect for **WSL + VcXsrv** or Linux.
 
 ---
 
-## 🐳 Docker Build & Run
-
-Prefer a clean, reproducible environment?
-ChaosEngine includes a **Docker-based build system** for development, testing, or WSL setups.
-
-### 🧱 Build the Docker Image
+## ⚡ Interactive Build Tool (`scripts/chaosbuild.sh`)
 
 ```bash
-make docker-build
+./scripts/chaosbuild.sh
 ```
 
-### 🧑‍💻 Run Inside Docker
-
-```bash
-make docker-shell
-```
-
-You’ll get a terminal with all dependencies (GCC, SDL2, GLAD 2) preinstalled.
-Perfect for WSL + VcXsrv or Linux.
-
----
-
-## ⚡ Interactive Build Tool (`chaosbuild.sh`)
-
-A colorful, interactive terminal interface for managing builds and demos:
-
-```bash
-./chaosbuild.sh
-```
-
-🧭 Menu options:
+### 🧭 Menu
 
 1. 🐳 Rebuild Docker image
 2. ⚙️ Build/Rebuild ChaosEngine library
-3. 🎮 Compile and run available demos
+3. 🎮 Compile & run a demo
 4. ❌ Exit
 
-💡 On **Windows/WSL**, make sure:
+💡 On WSL :
 
 ```bash
 export DISPLAY=:0
 ```
 
-and an X server (VcXsrv / X410) is running.
+Launch **VcXsrv** with “Disable access control”.
 
 ---
 
-## 🧾 License
+## 🖥️ Local Development Setup
 
-MIT License © 2025 — Developed by **PapaPamplemousse**
+Run ChaosEngine natively on Linux / WSL :
+
+```bash
+sudo apt install build-essential libsdl2-dev
+export DISPLAY=:0
+make -f cmake/Makefile run EXAMPLE=00_boot
+```
+
+---
+
+## 🧠 Developer Notes
+
+| Namespace           | Purpose                      |
+| ------------------- | ---------------------------- |
+| `chaos_core_*`      | Types, memory, logs          |
+| `chaos_platform_*`  | OS abstraction, input        |
+| `chaos_gfx_*`       | Rendering backend            |
+| `chaos_audio_*`     | Audio system                 |
+| `chaos_physics_*`   | Physics & collisions         |
+| `chaos_resources_*` | Assets & handles             |
+| `chaos_runtime_*`   | Engine loop, jobs, profiling |
+
+### 💡 Add a Demo
+
+```bash
+mkdir -p examples/my_demo
+echo '#include <chaos_engine.h>\nint main(){return 0;}' > examples/my_demo/main.c
+make -f cmake/Makefile run EXAMPLE=my_demo
+```
 
 ---
 
 ## 🌍 Roadmap
 
-| Status | Feature                        |
-| :----: | ------------------------------ |
-|    ✅   | Physics + Rendering Core       |
-|    ✅   | OpenGL 4.5 + SDL2 backend      |
-|   🔄   | Collision system & rigidbodies |
-|   🌈   | Lighting & material system     |
-|   🧩   | ECS + scene graph              |
-|   🧠   | Lua scripting support          |
-|   🧱   | Asset loader (OBJ, PNG, etc.)  |
-|   🪄   | Editor with live scene preview |
+| Status | Feature                 |
+| :----: | :---------------------- |
+|    ✅   | Core + logging + memory |
+|    ✅   | SDL2 window/input       |
+|    ✅   | Software renderer       |
+|   🔄   | Audio (miniaudio)       |
+|   🔄   | Physics 2D              |
+|   🧱   | ECS/Scene graph         |
+|   🧩   | Resource system         |
+|   🧠   | Job system              |
+|   🧾   | Profiling               |
+|   🌈   | Optional OpenGL backend |
 
 ---
 
-## 🧙 Developer Notes
+## 🧙 Developer Motto
 
-ChaosEngine is still in active development —
-below are some tips and conventions to keep your chaos organized 🌀
+ChaosEngine is an exploration of what happens
+when you build everything yourself — with precision, style, and a bit of madness.
 
-### 💡 Adding a New Demo
-
-1. Create a new folder under `examples/your_demo_name/`
-2. Add a `src/demo.c` file using the template from `examples/bouncing_ball/`
-3. Your demo automatically appears in the menu when running:
-
-   ```bash
-   ./chaosbuild.sh
-   ```
-4. Include the core headers you need:
-
-   ```c
-   #include <chaosrenderer.h>
-   #include <chaos_physics.h>
-   #include <chaos_math.h>
-   ```
-
-### 🧱 Adding a New Module
-
-* Create your `.c` and `.h` under `ChaosEngine/src` and `ChaosEngine/inc`
-* Add the `.o` file to the Makefile’s `OBJS` section
-* Rebuild with:
-
-  ```bash
-  ./chaosbuild.sh
-  ```
-
-### 🧩 Code Style
-
-* C99 standard, strict `-Wall -Wextra -Wpedantic`
-* No C++ features (for now)
-* Each subsystem has its own namespace prefix:
-
-  * `chaos_` for global engine
-  * `chaos_renderer_` for rendering code
-  * `chaos_math_` for math helpers
-
----
-
-## 💬 Contributing
-
-ChaosEngine is still experimental — but contributions are welcome.
-Whether you want to fix bugs, add new demos, or propose engine architecture improvements:
-
-👉 Open a PR or issue on [GitHub](https://github.com/PapaPamplemousse/ChaosEngine).
-
-Let’s build Chaos together 🌀
-
-
-
+> **Let’s build Chaos together 🌀**
