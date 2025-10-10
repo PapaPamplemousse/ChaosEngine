@@ -1,0 +1,5 @@
+- [ ] Core libc-mini, memory arenas/pools
+- [ ] Platform (SDL or native)
+- [ ] GFX backend GL3
+- [ ] Audio (miniaudio)
+- [ ] Physics2D
